@@ -1,0 +1,11 @@
+# PPO训练的局部避障策略部署到go2
+运行步骤：
+    1.export PYTHONPATH="/home/zgf/anaconda3/envs/upernet/lib/python3.10/site-packages:$PYTHONPATH"
+    2.colcon build
+    3.source install/setup.bash
+策略：
+    输入：base_link下的三轴速度（vx/vy/vz）、位置（x，y，z）、目标点基于base_link的偏航角
+    输出：线速度和偏航角，通过topic发送给运控节点
+
+
+
