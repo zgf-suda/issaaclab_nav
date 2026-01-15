@@ -5,36 +5,13 @@
 ### policy2dog 为 sim2real的代码，测试通过
 
 # 训练设置：
-    思路：强化学习的训练逻辑：目标点内20m、10m、2m距离奖励，目标点内0.2米很大奖励
-    1.5米外启用航向对齐奖励、1.5米内启用目标对齐奖励
+    思路：
+    奖励：设置了梯度距离奖励，目标点内20m（0-1）、10m（1-10）、2m（10-20）距离奖励，目标点内0.2米（100）很大奖励。碰撞惩罚（-100）。
+    航向：1.5米内启用航向对齐奖励，x方向速度对齐奖励（2m，稍大），朝向目标走，到终点在修正姿态。
 
-    奖励包括：距离目标点、航向对齐
-
-    观测： 雷达平面扫描的障碍物costmap、base_link下的三轴速度（vx/vy/vz）、目标位置（x，y，z）、目标点基于base_link的偏航角
+    观测： 雷达：周围2*2m距离，雷达划分体素，投影的XY平面内取的是格子的最小障碍物高度值，再将其看成一张图片卷积。
+    base_link下的三轴速度（vx/vy/vz）、目标位置（x，y，z）、目标点基于base_link的偏航角
 
     episode结束：意外停止（如摔倒等）、碰撞障碍物、到达时间步
 
-    效果：初期走向目标点，靠近时开始航向对齐，符合人类导航。
-    
-    class RewardsCfg:
-        """Reward terms for the MDP."""
-        termination_penalty = RewTerm(func=mdp.is_terminated, weight=-100.0) 
-        distance = RewTerm(
-            func=mdp.distance_reward,
-            weight=-100.0
-        )
-        position_tracking = RewTerm(
-            func=mdp.position_command_error_tanh,
-            weight=60,
-            params={"std": 2.0, "tr":10,"command_name": "pose_command"},
-        )
-        position_tracking_fine_grained = RewTerm(
-            func=mdp.position_command_error_tanh,
-            weight=60,
-            params={"std": 0.5, "tr":5,"command_name": "pose_command"},
-        )
-        orientation_tracking = RewTerm(
-            func=mdp.heading_command_error_abs,
-            weight=30,
-            params={"command_name": "pose_command"},
-        )
+    效果：初期走向目标点，靠近时开始航向对齐，到目标点后调整成目标姿态，符合人类导航。
